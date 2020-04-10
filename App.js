@@ -1,45 +1,48 @@
 import React, { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Button,
-  ScrollView,
-  FlatList,
-} from 'react-native';
-import { addListener } from 'expo/build/Updates/Updates';
+import { StyleSheet, View, Button, FlatList } from 'react-native';
+
 import GoalItem from './components/GoalItem';
+import GoalInput from './components/GoalInput';
 
 export default function App() {
-  const [goal, setGoal] = useState('');
   const [courseGoal, setCourseGoal] = useState([]);
+  const [isAddMode, setIsAddMode] = useState(false);
 
-  const goalInputHandler = (enteredText) => {
-    setGoal(enteredText);
-  };
-
-  const addGoalHandler = () => {
+  const addGoalHandler = (goalTitle) => {
     setCourseGoal((currentGoals) => [
       ...courseGoal,
-      { key: Math.random().toString(), value: goal },
+      { id: Math.random().toString(), value: goalTitle },
     ]);
+    setIsAddMode(false);
+  };
+
+  const removeGoalHandle = (goalId) => {
+    setCourseGoal((currentGoals) => {
+      return currentGoals.filter((goal) => goal.id !== goalId);
+    });
+  };
+
+  const cancelGoalAddHandler = () => {
+    setIsAddMode(false);
   };
 
   return (
     <View style={styles.screen}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Course Goal"
-          style={styles.input}
-          onChangeText={goalInputHandler}
-          value={goal}
-        />
-        <Button title="ADD" onPress={addGoalHandler} />
-      </View>
+      <Button title="Add New Goal" onPress={() => setIsAddMode(true)} />
+      <GoalInput
+        visible={isAddMode}
+        onAddGoal={addGoalHandler}
+        onCancel={cancelGoalAddHandler}
+      />
       <FlatList
         data={courseGoal}
-        renderItem={(data) => <GoalItem title={data.item.value} />}
+        renderItem={(data) => (
+          <GoalItem
+            id={data.item.id}
+            title={data.item.value}
+            onDelete={removeGoalHandle}
+          />
+        )}
       />
     </View>
   );
@@ -48,16 +51,5 @@ export default function App() {
 const styles = StyleSheet.create({
   screen: {
     padding: 50,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  input: {
-    width: '80%',
-    borderColor: 'black',
-    borderWidth: 1,
-    padding: 10,
   },
 });
